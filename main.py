@@ -23,7 +23,7 @@ class PostForm(FlaskForm):
     subtitle = StringField(label='Subtitle', validators=[DataRequired()])
     author = StringField(label='Your Name', validators=[DataRequired()])
     img_url = StringField(label='Blog Image URL', validators=[DataRequired()])
-    body = StringField(label='Blog Content', validators=[DataRequired()])
+    body = CKEditorField(label='Blog Content', validators=[DataRequired()])
     submit = SubmitField(label='Submit Post')
 
 # CONFIGURE TABLE
@@ -64,10 +64,33 @@ def show_post(post_id):
 
 
 # TODO: add_new_post() to create a new blog post
-@app.route('/new-post')
+@app.route('/new-post', methods=['POST', 'GET'])
 def add_new_post():
-    form = PostForm
-    return render_template("make-post.html", ckeditor=ckeditor, form=form)
+    create_post_form = PostForm()
+    if create_post_form.validate_on_submit():
+        today_month = date.today().strftime("%B")
+        today_date = date.today().day
+        today_year = date.today().year
+
+        new_post = BlogPost(
+            title = create_post_form.title.data,
+            subtitle = create_post_form.subtitle.data,
+            date = f"{today_month} {today_date}, {today_year}",
+            body = create_post_form.body.data,
+            author = create_post_form.author.data,
+            img_url = create_post_form.img_url.data
+        )
+
+        # FLAG: Cleanup this test
+        print(f"Test title: {new_post.title}\n"
+              f"Test subtitle: {new_post.subtitle}\n"
+              f"Test date: {new_post.date}\n"
+              f"Test body: {new_post.body}\n"
+              f"Test author: {new_post.author}\n"
+              f"Test img_url: {new_post.img_url}")
+
+
+    return render_template("make-post.html", form=create_post_form)
 
 # TODO: edit_post() to change an existing blog post
 
